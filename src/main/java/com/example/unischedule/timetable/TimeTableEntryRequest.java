@@ -15,6 +15,16 @@ public class TimeTableEntryRequest {
     @NotBlank
     private String subject;
 
+    private String color;     // Neu
+    private String colorType; // Neu
+
+    // Getter und Setter hinzufügen
+    public String getColor() { return color; }
+    public void setColor(String color) { this.color = color; }
+
+    public String getColorType() { return colorType; }
+    public void setColorType(String colorType) { this.colorType = colorType; }
+
     // Getter und Setter
     public String getDay() {
         return day;

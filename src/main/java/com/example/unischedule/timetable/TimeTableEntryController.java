@@ -7,7 +7,6 @@ import com.example.unischedule.user.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -51,7 +50,9 @@ public class TimeTableEntryController {
                 entryRequest.getDay(),
                 entryRequest.getStartTime(),
                 entryRequest.getEndTime(),
-                entryRequest.getSubject()
+                entryRequest.getSubject(),
+                entryRequest.getColor(),
+                entryRequest.getColorType()
         );
 
         timeTableEntryRepository.save(entry);
