@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Controller
-@RequestMapping("/timetable")
+@RequestMapping("/user/{userId}")
 public class TimeTableEntryController {
 
     @Autowired
@@ -25,7 +25,7 @@ public class TimeTableEntryController {
     @Autowired
     private UserRepository userRepository;
 
-    @GetMapping("/user")
+    @GetMapping("/timetable")
     @PreAuthorize("hasRole(USER) or hasRole(MODERATOR) or hasRole(ADMIN)")
     public ResponseEntity<?> getUserTimeTable(HttpServletRequest request){
 
@@ -36,12 +36,9 @@ public class TimeTableEntryController {
         return ResponseEntity.ok(entries);
     }
 
-    @PostMapping("/entry")
+    @PostMapping("/timetable")
     @PreAuthorize("hasRole('USER') or hasRole('MODERATOR') or hasRole('ADMIN')")
-    public ResponseEntity<?> addTimeTableEntry(@Valid @RequestBody TimeTableEntryRequest entryRequest){
-        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long userId = userDetails.getId();
-
+    public ResponseEntity<?> addTimeTableEntry(@PathVariable Long userId, @Valid @RequestBody TimeTableEntryRequest entryRequest) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Error: User not found."));
 
@@ -58,6 +55,7 @@ public class TimeTableEntryController {
         timeTableEntryRepository.save(entry);
         return ResponseEntity.ok(new MessageResponse("Entry added successfully!"));
     }
+
 //
 //    @DeleteMapping("/entry/{id}")
 //    @PreAuthorize("hasRole('USER') or hasRole('MODERATOR') or hasRole('ADMIN')")
