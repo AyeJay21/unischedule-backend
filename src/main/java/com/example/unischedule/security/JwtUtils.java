@@ -23,31 +23,30 @@ public class JwtUtils {
     @Value("${donhadez.app.jwtSecret}")
     private String jwtSecret;
 
-    @Value("${donhadez.app.jwtCookieName}")
-    private String jwtCookie;
+    //@Value("${donhadez.app.jwtCookieName}")
+    private String jwtCookie = "jwt";
 
     @Value("${donhadez.app.jwtExpirationMs}")
     private int jwtExpirationMs;
 
-    public String getJwtFromCookies(HttpServletRequest request){
+    public String getJwtFromCookies(HttpServletRequest request) {
         Cookie cookie = WebUtils.getCookie(request, jwtCookie);
-        if(cookie != null){
+        if (cookie != null) {
             return cookie.getValue();
-        }
-        else {
+        } else {
             return null;
         }
     }
 
-    public ResponseCookie generateJwtCookie(UserDetailsImpl userPrincipal){
+    public ResponseCookie generateJwtCookie(UserDetailsImpl userPrincipal) {
         String jwt = generateTokenFromUsername(userPrincipal.getUsername());
-        ResponseCookie cookie = ResponseCookie.from(jwtCookie, jwt).path("/api")
+        ResponseCookie cookie = ResponseCookie.from(jwtCookie, jwt).path("/")
                 .maxAge(24 * 60 * 60).httpOnly(true).build();
         return cookie;
     }
 
-    public ResponseCookie getCleanJwtCookie(){
-        ResponseCookie cookie = ResponseCookie.from(jwtCookie, null).path("/api").build();
+    public ResponseCookie getCleanJwtCookie() {
+        ResponseCookie cookie = ResponseCookie.from(jwtCookie, null).path("/").build();
         return cookie;
     }
 
@@ -60,23 +59,18 @@ public class JwtUtils {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 
-    public boolean validateJwtToken(String authToken){
-        try{
-            Jwts.parserBuilder().setSigningKey(key()).build().parse(authToken);
+    public boolean validateJwtToken(String authToken) {
+        try {
+            Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(authToken);
+            logger.info("Validating token with key: {}", key()); // Logge den Key
             return true;
-        }catch (MalformedJwtException e){
-            logger.error("Invalid JWT token: {}", e.getMessage());
-        }catch (ExpiredJwtException e){
-            logger.error("JWT token is expired: {}", e.getMessage());
-        }catch(UnsupportedJwtException e){
-            logger.error("JWT token is unsupported: {}", e.getMessage());
-        }catch(IllegalArgumentException e){
-            logger.error("JWT claims string is empty: {}", e.getMessage());
+        } catch (Exception e) { // Fange alle JWT-spezifischen Exceptions ab
+            logger.error("JWT validation failed: {}", e.getMessage());
+            return false;
         }
-        return false;
     }
 
-    public String generateTokenFromUsername(String username){
+    public String generateTokenFromUsername(String username) {
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())

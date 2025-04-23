@@ -4,7 +4,6 @@ import com.example.unischedule.payload.response.MessageResponse;
 import com.example.unischedule.user.User;
 import com.example.unischedule.user.UserDetailsImpl;
 import com.example.unischedule.user.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Controller
-@RequestMapping("/user/{userId}")
+@RequestMapping("/users")
 public class TimeTableEntryController {
 
     @Autowired
@@ -26,19 +25,22 @@ public class TimeTableEntryController {
     private UserRepository userRepository;
 
     @GetMapping("/timetable")
-    @PreAuthorize("hasRole(USER) or hasRole(MODERATOR) or hasRole(ADMIN)")
-    public ResponseEntity<?> getUserTimeTable(HttpServletRequest request){
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MODERATOR') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<?> getUserTimeTable(){
+        System.out.println("HELLO TIMETABLE");
+//        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//        Long userId = userDetails.getId();
 
-        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long userId = userDetails.getId();
-
-        List<TimeTableEntry> entries = timeTableEntryRepository.findByUserId(userId);
-        return ResponseEntity.ok(entries);
+        //List<TimeTableEntry> entries = timeTableEntryRepository.findByUserId(userId);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/timetable")
-    @PreAuthorize("hasRole('USER') or hasRole('MODERATOR') or hasRole('ADMIN')")
-    public ResponseEntity<?> addTimeTableEntry(@PathVariable Long userId, @Valid @RequestBody TimeTableEntryRequest entryRequest) {
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MODERATOR') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<?> addTimeTableEntry(@Valid @RequestBody TimeTableEntryRequest entryRequest) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = userDetails.getId();
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Error: User not found."));
 

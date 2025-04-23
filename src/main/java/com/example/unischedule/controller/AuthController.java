@@ -23,11 +23,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -49,7 +52,10 @@ public class AuthController {
     @Autowired
     JwtUtils jwtUtils;
 
+    private static final Logger logger = Logger.getLogger(AuthController.class.getName());
+
     @PostMapping(value = "/signup", produces = "application/json", consumes = "application/json")
+    @Transactional
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequest signUpRequest, Response response){
         try {
             if (userRepository.existsByUsername(signUpRequest.getUsername())) {
@@ -93,8 +99,12 @@ public class AuthController {
                     }
                 });
             }
-
             user.setRoles(roles);
+            logger.info("User: " + user.getUsername() + " | Roles: " + user.getRoles().stream()
+                    .map(role-> role.getName().name())
+                    .collect(Collectors.joining(", ")));
+
+
             userRepository.save(user);
 
             return ResponseEntity.ok(new MessageResponse("User registered succesfully"));
@@ -107,6 +117,7 @@ public class AuthController {
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest){
         Authentication authentication = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+        System.out.println("AUTH: " + authentication);
         SecurityContextHolder.getContext().setAuthentication(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         String token = jwtUtils.generateTokenFromUsername(userDetails.getUsername());
@@ -133,5 +144,10 @@ public class AuthController {
         ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new MessageResponse("You've been signed out"));
+    }
+
+    @GetMapping("/server-time")
+    public String getServerTime() {
+        return "Current server time: " + new Date() + " (Unix: " + System.currentTimeMillis() + ")";
     }
 }
