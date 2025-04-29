@@ -23,8 +23,8 @@ public class JwtUtils {
     @Value("${donhadez.app.jwtSecret}")
     private String jwtSecret;
 
-    //@Value("${donhadez.app.jwtCookieName}")
-    private String jwtCookie = "jwt";
+    @Value("${donhadez.app.jwtCookieName}")
+    private String jwtCookie;
 
     @Value("${donhadez.app.jwtExpirationMs}")
     private int jwtExpirationMs;

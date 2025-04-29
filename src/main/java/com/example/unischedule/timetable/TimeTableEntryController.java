@@ -30,8 +30,8 @@ public class TimeTableEntryController {
         System.out.println("HELLO TIMETABLE");
 //        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 //        Long userId = userDetails.getId();
-
-        //List<TimeTableEntry> entries = timeTableEntryRepository.findByUserId(userId);
+//
+//        List<TimeTableEntry> entries = timeTableEntryRepository.findByUserId(userId);
         return ResponseEntity.ok().build();
     }
 
