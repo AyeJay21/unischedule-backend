@@ -28,11 +28,11 @@ public class TimeTableEntryController {
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MODERATOR') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> getUserTimeTable(){
         System.out.println("HELLO TIMETABLE");
-//        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//        Long userId = userDetails.getId();
-//
-//        List<TimeTableEntry> entries = timeTableEntryRepository.findByUserId(userId);
-        return ResponseEntity.ok().build();
+        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = userDetails.getId();
+
+        List<TimeTableEntry> entries = timeTableEntryRepository.findByUserId(userId);
+        return ResponseEntity.ok(entries);
     }
 
     @PostMapping("/timetable")

@@ -11,6 +11,7 @@ import com.example.unischedule.security.JwtUtils;
 import com.example.unischedule.user.User;
 import com.example.unischedule.user.UserDetailsImpl;
 import com.example.unischedule.user.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -123,9 +125,9 @@ public class AuthController {
         String token = jwtUtils.generateTokenFromUsername(userDetails.getUsername());
         ResponseCookie jwtCookie = ResponseCookie.from("jwt", token)
                 .httpOnly(true)
-                .secure(false)   // Für HTTPS: true
+                .secure(true)
                 .path("/")
-                .sameSite("None") // Für Cross-Origin-Anfragen notwendig
+                .sameSite("None")
                 .build();
 
         List<String> roles = userDetails.getAuthorities().stream()
@@ -144,6 +146,26 @@ public class AuthController {
         ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new MessageResponse("You've been signed out"));
+    }
+
+    @GetMapping("/check")
+    public ResponseEntity<?> checkAuthStatus(HttpServletRequest servletRequest){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if(authentication != null && authentication.isAuthenticated()
+            && !(authentication instanceof AnonymousAuthenticationToken)){
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+            return ResponseEntity.ok(new UserInfoResponse(
+                    userDetails.getId(),
+                    userDetails.getUsername(),
+                    userDetails.getEmail(),
+                    userDetails.getAuthorities().stream().map(grantedAuthority ->
+                            grantedAuthority.getAuthority()).collect(Collectors.toList())
+            ));
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("UNAUTRIZED USER"));
     }
 
     @GetMapping("/server-time")
